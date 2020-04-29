@@ -47,13 +47,31 @@ x = np.linalg.solve(a, b)
 
 R = np.array([[x[0], x[1], x[2]], [v1[0][0], v1[1][0], v1[2][0]], [v2[0][0], v2[1][0], v2[2][0]]])
 
-print(R)
 # PART 2
 for k in range(1, len(data)):
     gyroData.append(data[k])
 
-
-
+# sampling rate is 100 hz
+dt = 1/100
+for wx,wy,wz in gyroData:
+    # find l and delta_theta
+    l = np.array([wx,wy,wz])
+    dtheta = np.sqrt(np.square(wx)+ np.square(wy)+np.square(wz))*dt
+    # find projection of l on global axis and normalize
+    l_proj = np.matmul(R, l) / np.linalg.norm(np.matmul(R,l))
+    ux = l_proj[0]
+    uy = l_proj[1]
+    uz = l_proj[2]
+    ux2 = np.square(l_proj[0])
+    uy2 = np.square(l_proj[1])
+    uz2 = np.square(l_proj[2])
+    # use angle and normalized axis to find new rotation matrix
+    newR = np.array([[np.cos(dtheta) + ux2*(1-np.cos(dtheta)), ux*uy*(1-np.cos(dtheta)) - uz*np.sin(dtheta), ux*uz*(1-np.cos(dtheta)) + uy*np.sin(dtheta)],
+                     [uy*ux*(1-np.cos(dtheta)) + uz*np.sin(dtheta), np.cos(dtheta)+uy2*(1-np.cos(dtheta)), uy * uz *(1-np.cos(dtheta)) - ux*np.sin(dtheta)],
+                     [uz*ux*(1-np.cos(dtheta)) - uy * np.sin(dtheta), uz * uy * (1-np.cos(dtheta)) + ux * np.sin(dtheta), np.cos(dtheta) + uz2 *(1-np.cos(dtheta))]])
+    # Next R is this newR times the previous R
+    R = newR @ R
+sol2 = R @ np.array([1,0,0]).transpose()
 f = open("result.txt", "w+")
 f.write(str(x[0]))
 f.write(" ")
@@ -61,6 +79,7 @@ f.write(str(v1[0][0]))
 f.write(" ")
 f.write(str(v2[0][0]))
 f.write("\n")
+f.write(str(sol2[0]) + ' ' + str(sol2[1]) + ' ' + str(sol2[2]))
 f.close()
 
 
