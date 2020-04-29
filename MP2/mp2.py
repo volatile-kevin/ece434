@@ -27,8 +27,7 @@ newMag = (-1 * np.matmul(localY, v2))/v2Mag
 # m has same direction as v2 
 newDirection = v2/v2Mag
 newVec = newMag * newDirection
-
-# v1 = y^T + m
+# v1 = y^T - m
 v1 = np.add(np.transpose(localY), newVec)
 
 # normalize the vectors
